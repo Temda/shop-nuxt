@@ -1,0 +1,60 @@
+<script  lang="ts" setup>
+import Products from '~~/interface/Products'
+const axios = useAxios()
+
+definePageMeta({
+    layout: 'admin',
+    middleware: ['only-admin']
+})
+
+const page = ref(1)
+
+const products = ref<Products[]>()
+
+async function fetchProduct() {
+    const res = await axios.get<{ products: Products[] }>('/api/products', {
+        params: {
+            page: page.value
+        }
+    })
+    products.value = res.data.products
+}
+
+await fetchProduct()
+
+watch(page, () => fetchProduct())
+
+</script>
+<template>
+    <div>
+        <h2 class="font-xl font-bold">รายการสินค้าทั้งหมด</h2>
+        <hr class="my-2">
+        <NuxtLink class="inline-block btn is-primary" to="/admin/products/create">เพิ่มสินค้า</NuxtLink>
+        <div class="overflow-x-auto relative">
+            <table class="w-full mt-3">
+                <thead>
+                    <tr>
+                        <th class="p-1 border">ID</th>
+                        <th class="p-1 border">ชื่อสินค้า</th>
+                        <th class="p-1 border">ราคา</th>
+                        <th class="p-1 border"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(product, i) of products" :key="i">
+                        <td class="p-1 border">{{ product.id }}</td>
+                        <td class="p-1 border">{{ product.title }}</td>
+                        <td class="p-1 border">{{ product.price }}</td>
+                        <td class="p-1 border">
+                            <NuxtLink class="text-blue-600 underline" :to="`/admin/products/${product.id}`">แก้ไข</NuxtLink>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="space-x-2 text-right mt-2 mr-1">
+            <span v-if="page > 1" class="text-blue-600 underline cursor-pointer" @click="page--">ก่อนหน้า</span>
+            <span class="text-blue-600 underline cursor-pointer" @click="page++">ถัดไป</span>
+        </div>
+    </div>
+</template>
